@@ -1,0 +1,51 @@
+<div class="bg-white shadow rounded">
+    <h2 class="text-xl font-semibold p-4 border-b">Task List</h2>
+    <table class="w-full text-left">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="p-4">Title</th>
+          <th>Status</th>
+          <th>Priority</th>
+          <th>Due Date</th>
+        </tr>
+      </thead> 
+      <tbody>
+        <tr *ngFor="let task of paginatedTasks$ | async" class="border-t">
+          <td class="p-4">{{ task.taskName }}</td>
+          <td>
+            <span [ngClass]="statusClass(task.status)" class="px-2 py-1 rounded text-white text-sm">
+              {{ task.status }}
+            </span>
+          </td>
+          <td>
+            <span [ngClass]="priorityClass(task.priority)" class="px-2 py-1 rounded text-sm">
+              {{ task.priority }}
+            </span>
+          </td>
+          <td>{{ task.due_date }}</td>
+        </tr>
+
+
+      </tbody>
+    </table>
+    <div class="flex justify-center space-x-2 mt-4 items-center">
+      <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"
+              class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">&lt;</button>
+      
+      <button *ngFor="let page of visiblePages"
+              (click)="onPageClick(page)"
+              [disabled]="page === '...'"
+              [class.font-bold]="page === currentPage"
+              class="px-3 py-1 rounded"
+              [ngClass]="{'bg-blue-500 text-white': page === currentPage, 'bg-gray-100': page !== currentPage}">
+        {{ page }}
+      </button>
+      
+      <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+              class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">&gt;</button>
+    </div>
+    
+    
+
+  </div>
+  
