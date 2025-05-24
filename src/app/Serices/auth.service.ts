@@ -24,6 +24,18 @@ interface TaskDto{
 
 }
 
+interface TaskDetails{
+  taskid: number;
+  taskName: string;
+  description: string;
+  status: string;
+  priority: string;
+  due_date: string;
+  completed_date: string;
+  creationtimestamp: string;
+  createdby: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -48,4 +60,8 @@ export class AuthService {
     tasks.createdby=2;
      return this.http.post(`${environment.apiBaseUrl}/api/Tasks/NewTask`,tasks);
   }
+
+    getAllTasks():Observable<TaskDetails[]>{
+      return this.http.get<TaskDetails[]>(`${environment.apiBaseUrl}/api/Tasks/GetAllTasks`);
+    }
 }

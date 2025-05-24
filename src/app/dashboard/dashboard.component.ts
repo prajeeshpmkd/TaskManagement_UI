@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../Serices/auth.service';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { TaskService } from '../Serices/task.service';
 
-interface TaskDetails{
+interface taskDetails{
   taskid: number;
   taskName: string;
   description: string;
@@ -22,15 +24,16 @@ interface TaskDetails{
 })
 export class DashboardComponent {
 
-  // Flag to control modal visibility
   isModalOpen = false;
-
-  // Reactive form group for the task modal
+  paramsSubscription?:Subscription;
   taskForm: FormGroup;
+  private allTasks: taskDetails[] = [];
+  InProgressTasks:number=0;
+  CompletedTasks:number=0;
+  TotalTasks:number=0;
 
+  constructor(private fb: FormBuilder,private authService:AuthService,route:ActivatedRoute,taskService:TaskService) {
 
-  constructor(private fb: FormBuilder,private authService:AuthService) {
-    // Initialize the form with default values and validators
     this.taskForm = this.fb.group({
       taskName: ['', Validators.required],
       description: [''],
@@ -38,18 +41,28 @@ export class DashboardComponent {
     });
   }
 
-  // Open modal
+  ngOnInit(): void {
+    this.authService.getAllTasks().subscribe({
+      next:(data)=>{
+        this.allTasks=data;
+        this.InProgressTasks=data.filter(data=>data.status==='In Progress').length; 
+        this.CompletedTasks=data.filter(data=>data.status==='Completed').length; 
+        this.TotalTasks=data.length;
+        console.log('Total inprogress Tasks=',this.InProgressTasks,'Total completed Tasks=',this.CompletedTasks,'Total Tasks=',this.TotalTasks);
+        console.log(data);
+      }
+     });  
+   }
+
   openModal() {
     this.isModalOpen = true;
   }
 
-  // Close modal and reset form
   closeModal() {
     this.isModalOpen = false;
     this.taskForm.reset();
   }
 
-  // Handle form submission
   submitTask() {
     if (this.taskForm.valid) {
       const newTask = this.taskForm.value;
@@ -64,5 +77,4 @@ export class DashboardComponent {
     }
   }
 
- 
 }

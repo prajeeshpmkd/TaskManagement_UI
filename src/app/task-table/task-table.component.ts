@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, Subscription, BehaviorSubject } from 'rxjs';
 import { TaskService } from '../Serices/task.service';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 interface taskDetails {
   taskid: number;
@@ -20,7 +21,9 @@ interface taskDetails {
   templateUrl: './task-table.component.html'
 })
 export class TaskTableComponent implements OnInit { 
-
+  isModalOpen = false;
+  taskForm: FormGroup;
+  UpdateTaskForm:FormGroup;
   paramsSubscription?: Subscription;
   currentPage = 1;
   pageSize = 4;
@@ -29,9 +32,23 @@ export class TaskTableComponent implements OnInit {
 
  
 
-  constructor(private route: ActivatedRoute, private taskService: TaskService) {}
+  constructor(private route: ActivatedRoute, private taskService: TaskService,private fb:FormBuilder,private utb:FormBuilder) {
+        this.taskForm = this.fb.group({
+          taskName: ['', Validators.required],
+          description: [''],
+          priority: ['', Validators.required]
+        });
+
+        this.UpdateTaskForm = this.utb.group({
+          taskName: [''],
+          description: [''],
+          priority: [''],
+          status:['']
+        });
+  }
 
   ngOnInit(): void {
+
     this.paramsSubscription= this.route.paramMap.subscribe({
        next:(params)=>{
          const hasReloaded = localStorage.getItem('hasReloaded');
@@ -76,7 +93,27 @@ export class TaskTableComponent implements OnInit {
       this.goToPage(page);
     }
   }
+
+  gotoTaskDetailModal(task: taskDetails){ 
+    this.isModalOpen=true;
+    this.UpdateTaskForm.patchValue({
+      taskName: task.taskName,
+      description: task.description,
+      priority: task.priority,
+      status:task.status
+      // Add other fields if necessary
+    });
+    console.log('This is Task View');
+  }
   
+  submitTask(){
+
+  }
+
+  closeModal(){
+    this.isModalOpen = false;
+    this.taskForm.reset();
+  }
   
   get visiblePages(): (number | string)[] {
     const total = this.totalPages;
