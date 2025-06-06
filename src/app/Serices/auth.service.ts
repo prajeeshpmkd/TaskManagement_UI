@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment.development';
+import { UpdateTaskDto } from '../models/updateTaskDto';
 
 interface LoginRequest{
   Username:string;
@@ -9,6 +10,7 @@ interface LoginRequest{
 }
 
 interface LoginResponse{
+  id:number;
   Username : string;
   password: string;
   token : string;
@@ -30,10 +32,16 @@ interface TaskDetails{
   description: string;
   status: string;
   priority: string;
-  due_date: string;
+  Due_date: Date;
   completed_date: string;
   creationtimestamp: string;
   createdby: number;
+}
+
+interface User{
+    id: number;
+    Username:string;
+    Role:string;
 }
 
 @Injectable({
@@ -50,18 +58,35 @@ export class AuthService {
       return this.http.post<LoginResponse>(`${environment.apiBaseUrl}/api/Auth/login`,credentials);
   }
 
-  saveToken(token:string ,Username:string){
+
+
+  saveToken(token:string ,UserId:string){
     localStorage.setItem('token',token);
-    localStorage.setItem('UserId',Username);
+    localStorage.setItem('UserId',UserId);
   }
 
   SaveNewTask(tasks:TaskDto): Observable<any>{
     tasks.Creationtimestamp=new Date();
-    tasks.createdby=2;
+    tasks.createdby=Number(localStorage.getItem('UserId'))||0;
      return this.http.post(`${environment.apiBaseUrl}/api/Tasks/NewTask`,tasks);
   }
 
     getAllTasks():Observable<TaskDetails[]>{
       return this.http.get<TaskDetails[]>(`${environment.apiBaseUrl}/api/Tasks/GetAllTasks`);
     }
+
+    getAllUsers():Observable<any[]>{
+      return this.http.get<any[]>(`${environment.apiBaseUrl}/api/Auth/Users`);
+    }
+
+    updateTask(taskId: number,updateData: UpdateTaskDto): Observable<any>{
+      //  updateData.lastmodifiedby=Number(localStorage.getItem('UserId'))||0;
+      //  updateData.updatedby=Number(localStorage.getItem('UserId'))||0;
+      //  updateData.lastmodifiedtimestamp=String(new Date());
+
+       return this.http.put(`${environment.apiBaseUrl}/api/Tasks/${taskId}`, updateData);  
+
+    }
+
+
 }

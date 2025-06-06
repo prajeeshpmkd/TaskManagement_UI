@@ -27,9 +27,11 @@ export class LoginComponent {
       console.log("Login begins....");
       this.authService.login(this.loginForm.value).subscribe({
         next:(response)=>{
-          this.authService.saveToken(response.token,response.Username);
+          console.log("Login response:", response);
+          this.authService.saveToken(response.token,response.id.toString());
           this.authService.isLoggedIn();
           console.log(response.token);
+          console.log(response.id.toString());
           this.router.navigate(['/dashboard']);
         }
       })

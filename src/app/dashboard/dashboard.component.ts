@@ -11,7 +11,7 @@ interface taskDetails{
   description: string;
   status: string;
   priority: string;
-  due_date: string;
+  Due_date: Date;
   completed_date: string;
   creationtimestamp: string;
   createdby: number;
@@ -36,8 +36,9 @@ export class DashboardComponent {
 
     this.taskForm = this.fb.group({
       taskName: ['', Validators.required],
-      description: [''],
-      priority: ['', Validators.required]
+      description: [''], 
+      priority: ['', Validators.required],
+      Due_date:[]
     });
   }
 
@@ -71,7 +72,7 @@ export class DashboardComponent {
         next:(response)=>{
           this.closeModal();
           window.location.reload();
-          console.log('Successfully task added');
+          console.log('Successfully task added,due date is=',newTask.Due_date);
         }
       })
     }

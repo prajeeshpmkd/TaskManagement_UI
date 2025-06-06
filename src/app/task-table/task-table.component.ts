@@ -3,6 +3,8 @@ import { ActivatedRoute } from '@angular/router';
 import { Observable, Subscription, BehaviorSubject } from 'rxjs';
 import { TaskService } from '../Serices/task.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../Serices/auth.service';
+import { UpdateTaskDto } from '../models/updateTaskDto';
 
 interface taskDetails {
   taskid: number;
@@ -16,6 +18,12 @@ interface taskDetails {
   createdby: number;
 }
 
+interface User {
+    id: number;
+    username:string;
+    Role:string;
+}
+
 @Component({
   selector: 'app-task-table',
   templateUrl: './task-table.component.html'
@@ -26,13 +34,14 @@ export class TaskTableComponent implements OnInit {
   UpdateTaskForm:FormGroup;
   paramsSubscription?: Subscription;
   currentPage = 1;
-  pageSize = 4;
+  pageSize = 5;
   paginatedTasks$ = new BehaviorSubject<taskDetails[]>([]);
   private allTasks: taskDetails[] = [];
+  usersList: any[] = [];
 
  
 
-  constructor(private route: ActivatedRoute, private taskService: TaskService,private fb:FormBuilder,private utb:FormBuilder) {
+  constructor(private route: ActivatedRoute, private taskService: TaskService,private fb:FormBuilder,private utb:FormBuilder,private authService:AuthService) {
         this.taskForm = this.fb.group({
           taskName: ['', Validators.required],
           description: [''],
@@ -40,15 +49,20 @@ export class TaskTableComponent implements OnInit {
         });
 
         this.UpdateTaskForm = this.utb.group({
+          taskid:[''],
           taskName: [''],
           description: [''],
+          tskdescription:[''],
+          assignedto: ['', Validators.required],
           priority: [''],
-          status:['']
+          status:[''],
+          Due_date :['']
         });
   }
 
   ngOnInit(): void {
-
+    this.loadUsers();
+    console.log(this.usersList);
     this.paramsSubscription= this.route.paramMap.subscribe({
        next:(params)=>{
          const hasReloaded = localStorage.getItem('hasReloaded');
@@ -67,6 +81,17 @@ export class TaskTableComponent implements OnInit {
        }
      })
    }
+
+  loadUsers() {
+    this.authService.getAllUsers().subscribe({
+      next: (res) => {
+        this.usersList = res;
+      },
+      error: (err) => {
+        console.error('Failed to load users', err);
+      }
+    });
+  }
 
    updatePaginatedTasks(): void {
     const start = (this.currentPage - 1) * this.pageSize;
@@ -96,23 +121,68 @@ export class TaskTableComponent implements OnInit {
 
   gotoTaskDetailModal(task: taskDetails){ 
     this.isModalOpen=true;
+    console.log('this is loading after click update',task);
     this.UpdateTaskForm.patchValue({
+      taskid:task.taskid,
       taskName: task.taskName,
       description: task.description,
       priority: task.priority,
-      status:task.status
+      status:task.status,
+      Due_date:task.due_date
       // Add other fields if necessary
     });
-    console.log('This is Task View');
+
+    this.UpdateTaskForm.get('taskName')?.disable();
+    this.UpdateTaskForm.get('description')?.disable();
   }
   
-  submitTask(){
+  UpdateTask() {
+  if (this.UpdateTaskForm.valid) {
+    const updateTask = this.UpdateTaskForm.getRawValue();
+    const taskId = updateTask.taskid;
+    const now = new Date().toISOString();
+
+    const updateData: UpdateTaskDto = {
+    TaskName: updateTask.taskName,
+    Description: updateTask.description,
+    Priority: updateTask.priority,
+    Status: updateTask.status,
+    Due_date: updateTask.Due_date ? new Date(updateTask.Due_date).toISOString().split('T')[0] : null,
+    Completed_date: updateTask.status === 'Completed' ? new Date().toISOString().split('T')[0] : null,
+    lastmodifiedby: Number(localStorage.getItem('UserId')) || 0,
+    lastmodifiedtimestamp: new Date().toISOString(),
+    actiontaken: updateTask.tskdescription,
+    updatedby: Number(localStorage.getItem('UserId')) || 0,
+    newstatus: updateTask.status,
+    assignedto: updateTask.assignedto,
+    updatedon: new Date().toISOString(),
+    Comments: updateTask.tskdescription
+    };
+
+
+    console.log(updateData);
+
+  this.authService.updateTask(taskId, updateData).subscribe({
+    next: (response) => {
+      this.closeModal();
+      window.location.reload();
+    },
+    error: (err) => {
+      console.error('Update failed:', err);
+      if (err.error && err.error.errors) {
+        console.error('Validation errors:', err.error.errors);
+      }
+    }
+  });
 
   }
+}
+
 
   closeModal(){
     this.isModalOpen = false;
     this.taskForm.reset();
+    this.UpdateTaskForm.reset();
   }
   
   get visiblePages(): (number | string)[] {
