@@ -154,7 +154,7 @@ export class TaskTableComponent implements OnInit {
     actiontaken: updateTask.tskdescription,
     updatedby: Number(localStorage.getItem('UserId')) || 0,
     newstatus: updateTask.status,
-    assignedto: updateTask.assignedto,
+    assignedto: updateTask.assignedto ||Number(localStorage.getItem('UserId')) || 0,
     updatedon: new Date().toISOString(),
     Comments: updateTask.tskdescription
     };

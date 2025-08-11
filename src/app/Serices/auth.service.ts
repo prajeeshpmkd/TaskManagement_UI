@@ -16,6 +16,19 @@ interface LoginResponse{
   token : string;
 }
 
+interface RegisterRequest{
+  Username:string;
+  Email:string;
+  Password:string;
+}
+
+interface RegisterResponse{
+
+  Username:string;
+  Email:string;
+  Password:string;
+}
+
 interface TaskDto{
 
   TaskName:string;
@@ -58,7 +71,9 @@ export class AuthService {
       return this.http.post<LoginResponse>(`${environment.apiBaseUrl}/api/Auth/login`,credentials);
   }
 
-
+  userRegister(credentials:RegisterRequest):Observable<RegisterResponse>{
+      return this.http.post<RegisterResponse>(`${environment.apiBaseUrl}/api/Auth/register`,credentials);
+  }
 
   saveToken(token:string ,UserId:string){
     localStorage.setItem('token',token);
@@ -80,10 +95,6 @@ export class AuthService {
     }
 
     updateTask(taskId: number,updateData: UpdateTaskDto): Observable<any>{
-      //  updateData.lastmodifiedby=Number(localStorage.getItem('UserId'))||0;
-      //  updateData.updatedby=Number(localStorage.getItem('UserId'))||0;
-      //  updateData.lastmodifiedtimestamp=String(new Date());
-
        return this.http.put(`${environment.apiBaseUrl}/api/Tasks/${taskId}`, updateData);  
 
     }
